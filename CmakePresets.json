@@ -1,0 +1,26 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 27,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "Demo",
+            "displayName": "Demo",
+            "description": "Compiler settings for demo",
+            "generator": "MinGW Makefiles",
+            "binaryDir": "${sourceDir}/app/Demo/Build",
+            "toolchainFile": "cmake/arm-none-eabi-gcc.cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_C_FLAGS": "-mcpu=cortex-m33 -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard -fdata-sections -ffunction-sections -Wall -Og",
+                "CMAKE_CXX_FLAGS": "-mcpu=cortex-m33 -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard -fdata-sections -ffunction-sections -Wall -Og",
+                "BUILD_TARGET": "Demo",
+                "FREERTOS_PORT": "GCC_ARM_CM33_NTZ_NONSECURE"
+            }
+        }
+    ]
+}
