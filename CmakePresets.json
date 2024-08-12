@@ -7,19 +7,53 @@
     },
     "configurePresets": [
         {
+            "name": "stm32h5",
+            "hidden": true,
+            "toolchainFile": "cmake/gcc-m33.cmake",
+            "cacheVariables": {
+                "FREERTOS_PORT": "GCC_ARM_CM33_NTZ_NONSECURE"
+            }
+        },
+        {
+            "name": "stm32h503",
+            "hidden": true,
+            "inherits": "stm32h5",
+            "cacheVariables": {
+                "LINKER_SCRIPT": "${sourceDir}/mcu_support/stm32/h5xx/h503/STM32H503xx_FLASH.ld",
+                "STARTUP_FILE": "${sourceDir}/mcu_support/stm32/h5xx/h503/startup_stm32h503xx.s",
+                "MCU_NAME": "STM32H503xx"
+            }
+        },
+        {
+            "name": "stm32h563",
+            "hidden": true,
+            "inherits": "stm32h5",
+            "cacheVariables": {
+                "LINKER_SCRIPT": "${sourceDir}/mcu_support/stm32/h5xx/h563/STM32H563xx_FLASH.ld",
+                "STARTUP_FILE": "${sourceDir}/mcu_support/stm32/h5xx/h563/startup_stm32h563xx.s",
+                "MCU_NAME": "STM32H563xx"
+            }
+        },
+        {
             "name": "Demo",
-            "displayName": "Demo",
-            "description": "Compiler settings for demo",
+            "description": "Compiler settings for Demo",
+            "inherits": "stm32h503",
             "generator": "MinGW Makefiles",
             "binaryDir": "${sourceDir}/app/Demo/Build",
-            "toolchainFile": "cmake/arm-none-eabi-gcc.cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "CMAKE_C_FLAGS": "-mcpu=cortex-m33 -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard -fdata-sections -ffunction-sections -Wall -Og",
-                "CMAKE_CXX_FLAGS": "-mcpu=cortex-m33 -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard -fdata-sections -ffunction-sections -Wall -Og",
-                "BUILD_TARGET": "Demo",
-                "FREERTOS_PORT": "GCC_ARM_CM33_NTZ_NONSECURE"
+                "BUILD_TARGET": "Demo"
+            }
+        },
+        {
+            "name": "usart",
+            "description": "Compiler settings for usart example",
+            "inherits": "stm32h503",
+            "generator": "MinGW Makefiles",
+            "binaryDir": "${sourceDir}/app/usart/Build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "BUILD_TARGET": "usart"
             }
         }
     ]
