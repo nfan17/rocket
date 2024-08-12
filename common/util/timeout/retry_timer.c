@@ -1,13 +1,4 @@
-
-#pragma once
-
-#include "timeout.h"
-
-typedef struct
-{
-    size_t reset;
-	volatile size_t counter;
-} RetryData;
+#include "retry_timer.h"
 
 void retry_timer_start(void * data)
 {

@@ -1,4 +1,4 @@
-set(EXECUTABLE demo)
+set(EXECUTABLE cli_f7)
 
 add_subdirectory(BSP)
 
@@ -6,10 +6,13 @@ add_executable(${EXECUTABLE}
     main.c
     freertos.c
     interrupts.c
+    usart_cli.c
     ${STARTUP_FILE}
 )
 
-target_link_options(${EXECUTABLE} PUBLIC
+# target_include_directories(${EXECUTABLE} PRIVATE .)
+
+target_link_options(${EXECUTABLE} PRIVATE
     -T${LINKER_SCRIPT}
     -specs=nosys.specs
     -lc
@@ -22,6 +25,10 @@ target_link_options(${EXECUTABLE} PUBLIC
 
 target_link_libraries(${EXECUTABLE} PRIVATE
     bsp
+    cli
+    drivers
+    timeout
+    container
 )
 
 add_custom_command(TARGET ${EXECUTABLE}
