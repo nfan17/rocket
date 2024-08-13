@@ -57,7 +57,7 @@ bool cli_process(const char * message)
         for (int i = 0; i < num_commands; i++) {
             if (strcmp(argv[0], commands[i].name) == 0) {
                 commands[i].handler(argc, argv);
-                return;
+                return true;
             }
         }
         
@@ -65,7 +65,8 @@ bool cli_process(const char * message)
          * Unknown command parsed.
          */
         char response[] = "Unknown command!\n";
-        comm->write_str(response, strlen(response));
+        comm->write_str(response);
+        return false;
     }
 }
 
