@@ -2,7 +2,7 @@
 #include "usart_cli.h"
 
 
-static StackType_t cli_task_stack[50];
+static StackType_t cli_task_stack[200];
 static StaticTask_t cli_task_buffer;
 
 static RingBuffer usart_buf;
@@ -17,6 +17,11 @@ static TaskHandle_t cli_task;
 
 static bool active = false;
 
+/**
+ * Gets string from the ring buffer.
+ * 
+ * @returns The size of the string read.
+ */
 static size_t get_string_from_buf(RingBuffer *buf, char *string, size_t max)
 {
     for (size_t i = 0; i < max; ++i)
@@ -24,14 +29,22 @@ static size_t get_string_from_buf(RingBuffer *buf, char *string, size_t max)
         uint8_t data = 0;
         bool success = ring_buffer_pop(buf, &data);
         string[i] = (char) data;
-        if (!success || (data == '\n'))
+        if (!success || (data == CLI_TERMINATION_CHAR))
         {
             return i;
         }
     }
 }
 
-bool cli_write(const char * data)
+/**
+ * Writes a null terminated string to the command line, automatically
+ * adding a newline. 
+ * 
+ * @param data a null terminated c string.
+ * 
+ * @returns True if successful, false otherwise.
+ */
+static bool usart_write_str(const char * data)
 {
     size_t size = 0;
     size_t max = MAX_SEND_LEN;
@@ -44,11 +57,15 @@ bool cli_write(const char * data)
         size++;
     }
     bool success = 0;
+    uint8_t term_char = CLI_TERMINATION_CHAR;
     success = Usart_Send(&usart, (uint8_t *) data, size);
-    Usart_Send(&usart, (uint8_t*) "\n", 1);
+    Usart_Send(&usart, &term_char, 1);
     return success;
 }
 
+/**
+ * Writes the boot message to the command line.
+ */
 static void boot_msg()
 {
     static const char* logo[] = {
@@ -61,11 +78,11 @@ static void boot_msg()
         "    . .     ,;;'        ,.,    ;k,      `'`        '",
         "          .o;    ':c;:;;,,,:;.   ; '     c:.         ``",
         ".       .x.    ,;'.   .:cc:ccoc    :      od;",
-        ".      .l;   'c'   .;:oOKXKKOkl;   l.     ; xo         '",
+        ".      .l;   'c'   .;:oOKXKKOkl;    l.     ; xo         '",
         ". .   ;c    :;   .:. cKNNWNXKd; ; :    .l:.        .",
         ". .  .;.    ;,   'l. .xkOOkOxl, .    .:oc",
-        "   .  ;,'     ,.  .o,  .':,..  . . : c.             THE",
-        "   .  .cc'    ''   :x'     .,:;' ' .        INDOMITABLE",
+        "  .  ;,'     ,.  .o,  .':,..  . . : c.              THE",
+        "  .  .cc'    ''   :x'     .,:;' ' .         INDOMITABLE",
         "        ;c.     .'   ;xc.                  HUMAN SPIRIT",
         "         .'...    ..  .lo:,... ....;;'.   SHALL PREVAIL",
         "            ...         ..';",
@@ -80,6 +97,10 @@ static void boot_msg()
     }
 }
 
+/**
+ * FreeRTOS CLI processing task function, implements using ring
+ * buffer to read new messages and logging in.
+ */
 static void cli_process_task(void * params)
 {
     const TickType_t max_block_time = pdMS_TO_TICKS(UINT32_MAX);
@@ -101,7 +122,9 @@ static void cli_process_task(void * params)
 
             if (active)
             {
+                taskENTER_CRITICAL();
                 cli_process(command);
+                taskEXIT_CRITICAL();
                 cli_write("root:~$: ");
             }
             else
@@ -128,11 +151,12 @@ void usart_rx_callback()
 {
     if (Usart_Isr_Set(&usart, USART_ISR_RXNE))
     {
+        Usart_Check_Overrun(&usart);
         BaseType_t higher_prio_task_woken = pdFALSE;
         uint8_t data = 0;
         Usart_Recv(&usart, &data, 1);
         ring_buffer_insert(&usart_buf, data);
-        if (data == '\n')
+        if (data == CLI_TERMINATION_CHAR)
         {
             xTaskNotifyFromISR(cli_task, 0, eNoAction,
                                &higher_prio_task_woken);
@@ -149,7 +173,7 @@ bool create_cli_task(uint32_t usart_base_addr, uint32_t sys_core_clk,
     Usart_Init(&usart, usart_base_addr, &time);
     Usart_Config(&usart, sys_core_clk, 115200);
 
-    send.write_str = cli_write;
+    send.write_str = usart_write_str;
     cli_init(&send);
 
     for (size_t i = 0; i < num_commands; ++i)
@@ -159,6 +183,6 @@ bool create_cli_task(uint32_t usart_base_addr, uint32_t sys_core_clk,
             return false;
         }
     }
-    cli_task = xTaskCreateStatic( cli_process_task, "CLI", 50, NULL, 1, cli_task_stack, &cli_task_buffer);
+    cli_task = xTaskCreateStatic( cli_process_task, "CLI", 200, NULL, 1, cli_task_stack, &cli_task_buffer);
     return true;
 }
