@@ -24,6 +24,8 @@ target_link_libraries(${EXECUTABLE} PRIVATE
     bsp
     usart_cli
     usart
+    tmp102
+    str_util
 )
 
 add_custom_command(TARGET ${EXECUTABLE}
