@@ -8,6 +8,7 @@
 #include "i2c_access.h"
 #include "usart.h"
 #include "usart_cli.h"
+#include "gpio.h"
 
 #include "tmp102.h"
 #include "bno055.h"
@@ -24,6 +25,7 @@ void read_baro(int argc, char* argv[]);
 
 Usart usart;
 I2c i2c;
+Gpio led_gpio;
 
 Tmp102 tmp;
 Bno055 bno;
@@ -32,7 +34,7 @@ Bmp390 bmp;
 int main(void)
 {
 
-    BSP_Init(&usart, &i2c);
+    BSP_Init(&usart, &i2c, &led_gpio);
 
     Tmp102_Init(&tmp, &i2c, TMP102_ADDR_GND);
 
@@ -64,8 +66,7 @@ int main(void)
 
 void blink(int argc, char* argv[])
 {
-    GPIOA->ODR ^= GPIO_ODR_OD5;
-    cli_write("Blink - %d", !!(GPIOA->ODR & GPIO_ODR_OD5));
+    cli_write("Blink - %d", led_gpio.toggle(&led_gpio));
 }
 
 void read_temp(int argc, char* argv[])
