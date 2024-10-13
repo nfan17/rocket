@@ -24,6 +24,7 @@ Usart usart;
 I2c temp_i2c;
 I2c an1_i2c;
 I2c an2_i2c;
+CanBus can;
 Gpio led_gpio;
 
 Tmp102 tmp;
@@ -42,15 +43,22 @@ volatile int16_t ad_readings[NUM_ADC][MAX_ADC_CHANNELS] = {0};
 int main(void)
 {
 
-    BSP_Init(&usart, &temp_i2c, &an1_i2c, &an2_i2c, &led_gpio);
+    BSP_Init(&usart, &temp_i2c, &an1_i2c, &an2_i2c, &can, &led_gpio);
     led_gpio.set(&led_gpio, true);
+
+    uint8_t cdat[8] = {1, 2, 3, 4, 5, 6, 7, 8};
+    uint8_t rdat[8] = { 0 };
+    can.send(&can, cdat, 8);
+    can.recv(&can, rdat, 8);
+
+    cli_write("USING HW: STM32L452");
 
     Command commands[3] = { 
         {"Blink", blink, "Blinks LED."},
         {"Temp", read_temp, "Reads temperature."},
         {"Adc", read_adc, "Reads all ADC channels."}
     };
-    create_cli_task(&usart, commands, 6);
+    create_cli_task(&usart, commands, 3);
 
     Tmp102_Init(&tmp, &temp_i2c, TMP102_ADDR_GND);
 

@@ -44,6 +44,7 @@ int main(void)
 
     init_i2c_access(&i2c);
 
+    cli_write("USING HW: STM32H503");
     Command commands[6] = { 
         {"Blink", blink, "Blinks LED."},
         {"Temp", read_temp, "Reads temperature."},
