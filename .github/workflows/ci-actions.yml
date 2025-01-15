@@ -47,9 +47,9 @@ jobs:
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake --preset=stm32f746 -DTARGET_APP="" -DCMAKE_BUILD_TYPE=Release
+      run: sudo apt-get install ninja-build ; cmake --preset=stm32f746 -DTARGET_APP="" -DCMAKE_BUILD_TYPE=Release
 
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      run: cmake --build ./build
+      run: cmake --build  ${{ build-output-dir }}
 
