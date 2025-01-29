@@ -5,7 +5,6 @@
 #pragma once
 
 #include "stm32f7xx_hal.h"
-#include "stm32f746xx.h"
 #include "st_usart.h"
 #include "st_spi.h"
 #include "st_i2c.h"

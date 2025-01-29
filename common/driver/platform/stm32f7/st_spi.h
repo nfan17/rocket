@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include "stm32f746xx.h"
 #include "stm32f7xx.h"
 
 #include "spi.h"

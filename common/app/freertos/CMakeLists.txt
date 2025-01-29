@@ -6,11 +6,13 @@ add_library(freertos_app STATIC
 
 target_include_directories(freertos_app PUBLIC
     cli
+    mission
     timeout
 )
 
 target_link_libraries(freertos_app PUBLIC
     core
     driver
+    generic_app
     freertos_kernel
 )

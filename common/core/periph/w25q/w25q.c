@@ -1,16 +1,9 @@
 
 #include "w25q.h"
 
-// static inline getpageaddr and getsectoraddr
-
-static inline size_t get_page_addr(size_t address, size_t page_size)
+size_t get_section_addr(size_t address, size_t section_size)
 {
-    return address - (address % page_size);
-}
-
-static inline size_t get_sector_addr(size_t address, size_t sector_size)
-{
-    return address - (address % sector_size);
+    return address - (address % section_size);
 }
 
 static bool mask_status(W25q *flash, uint8_t cmd, uint8_t mask)
@@ -39,17 +32,24 @@ static void write_enable(W25q *flash)
     flash->bus->cs.deselect(&flash->bus->cs);
 }
 
-void W25qInit(W25q *flash, Spi *spi)
+void W25qInit(W25q *flash, Spi *spi, size_t mem_size)
 {
     flash->bus = spi;
     flash->page_write = W25qPageWrite;
     flash->read = W25qRead;
     flash->erase_sector = W25qSectorErase;
+    flash->page_size = W25Q_PAGE_SIZE_BYTES;
+    flash->sector_size = W25Q_SECTOR_SIZE_BYTES;
+    flash->mem_size = mem_size;
 }
 
 bool W25qPageWrite(W25q *flash, size_t address, uint8_t *data, size_t size)
 {
-    // Enforce start addr + size < getpageaddr + 256
+    // Enforce start addr + size < next sector addr, so no wrap around happens.
+    if ((address + size) > (get_section_addr(address, flash->page_size) + flash->page_size))
+    {
+        return false;
+    }
 
     write_enable(flash);
 
@@ -89,11 +89,11 @@ bool W25qRead(W25q *flash, size_t address, uint8_t *data, size_t size)
 
 bool W25qSectorErase(W25q *flash, size_t address)
 {
-    address = get_sector_addr(address, 4096);
+    address = get_section_addr(address, flash->sector_size);
 
     write_enable(flash);
 
-    // Write enable instruction 0x6, Sector erase cmd 0x20 followed by 24-bit address
+    // Sector erase cmd 0x20 followed by 24-bit address
     uint8_t txbuf[4] = {0x20, address >> 16, (address >> 8) & 0xFF, address & 0xFF};
     flash->bus->cs.select(&flash->bus->cs);
     flash->bus->send(flash->bus, txbuf, 4);

@@ -33,9 +33,8 @@ void StSpiConfig(Spi * spi)
 
     /** 
      * Set bitrate: freq pclk / 2 ^ (BR + 1)
-     * 72/32 = 2.25MHz, 84/32 = 2.625MHz
      */
-    dev->instance->CR1 |= SPI_CR1_BR;
+    dev->instance->CR1 |= 0;
 
     dev->instance->CR1 |= SPI_CR1_MSTR; // Master mode
 
@@ -58,7 +57,6 @@ bool StSpiSend(Spi * spi, uint8_t *data, size_t size)
 		return false;
 	}
 
-    uint8_t dummy = 0;
     for (size_t i = 0; i < size;)
     {
         // Wait for space in TX FIFO
@@ -79,7 +77,7 @@ bool StSpiSend(Spi * spi, uint8_t *data, size_t size)
          * Write access to SPI_DR stores data in TXFIFO at end of queue
          * Must be aligned with RXFIFO threshold conf by FRXTH, FTLVL and FRLVL indicate FIFO occupancy
          */
-		dummy = *(DataReg)&dev->instance->DR;
+		uint8_t dummy = *(DataReg)&dev->instance->DR;
 	}
 
     WAIT(dev->timer, !(dev->instance->SR & SPI_SR_BSY), false);
@@ -97,7 +95,6 @@ bool StSpiRead(Spi * spi, uint8_t *data, size_t size)
 		return false;
 	}
 
-    uint8_t dummy = 0;
     for (size_t i = 0; i < size;)
     {
         // Wait for space in TX FIFO
@@ -108,7 +105,7 @@ bool StSpiRead(Spi * spi, uint8_t *data, size_t size)
          * When transmission is enabled, seq begins and continues
          * while data present in FIFO. CLK ends when FIFO becomes empty
          */
-        *(DataReg)&dev->instance->DR = dummy;
+        *(DataReg)&dev->instance->DR = 0;
 
         // Wait for RX FIFO to fill
 		WAIT(dev->timer, dev->instance->SR & SPI_SR_RXNE, false);
