@@ -20,4 +20,4 @@ jobs:
 
     - name: Run clang-format
       run: |
-        find . -iname '*.h' -o -iname '*.c' -o -iname '*.cc' | xargs clang-format -i
+        find . -iname '*.h' -o -iname '*.c' -o -iname '*.cc' | xargs clang-format --dry-run --Werror
