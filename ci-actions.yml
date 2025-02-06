@@ -1,0 +1,27 @@
+name: C++ CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    name: Lint with clang-format
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Clang
+      uses: llvm/actions/setup-clang@v1
+      with:
+        clang-version: '13'  # Adjust to your preferred Clang version
+
+    - name: Run clang-format
+      run: |
+        find . -iname '*.h' -o -iname '*.c' -o -iname '*.cc' | xargs clang-format -i
